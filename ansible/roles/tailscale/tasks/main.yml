@@ -1,0 +1,49 @@
+---
+- name: Add Tailscale apt signing key
+  ansible.builtin.get_url:
+    url: https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
+
+- name: Add Tailscale apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main"
+    filename: tailscale
+    state: present
+
+- name: Install tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+    update_cache: true
+
+- name: Ensure tailscaled is running
+  ansible.builtin.service:
+    name: tailscaled
+    state: started
+    enabled: true
+
+- name: Check tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: ts_status
+  changed_when: false
+  failed_when: false
+
+# Login only. Gated on "not already Running" so it does not re-auth every play.
+- name: Bring tailscale up
+  ansible.builtin.command: >-
+    tailscale up
+    --authkey {{ tailscale_authkey }}
+    --hostname {{ tailscale_hostname }}
+  when: >-
+    ts_status.rc != 0 or
+    (ts_status.stdout | from_json).BackendState | default("NoState") != "Running"
+  no_log: true
+
+# Persistent settings (routes, exit node, DNS) are applied separately: on an
+# already-up node "tailscale up" is skipped by the guard above, so reconciling
+# them there would be a no-op. "tailscale set" is idempotent on the Tailscale side.
+- name: Apply tailscale settings
+  ansible.builtin.command: "tailscale set {{ tailscale_set_args }}"
+  when: tailscale_set_args | trim | length > 0
+  changed_when: false

@@ -1,0 +1,7 @@
+---
+# Flags passed to "tailscale set" (applied to the already-up node). Uncomment as needed:
+#   --advertise-routes=10.38.194.0/24   # subnet router
+#   --advertise-exit-node               # exit node (needs ip_forward, set by common role)
+#   --accept-dns=false                  # if Pi-hole should stay authoritative locally
+tailscale_set_args: ""
+tailscale_hostname: "{{ inventory_hostname }}"

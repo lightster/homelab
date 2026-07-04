@@ -1,0 +1,3 @@
+# Non-secret vars shared across hosts. Secrets go in vault.yml (encrypted) and
+# are referenced here indirectly, e.g. tailscale_authkey: "{{ vault_tailscale_authkey }}"
+tailscale_authkey: "{{ vault_tailscale_authkey }}"

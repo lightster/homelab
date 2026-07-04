@@ -1,0 +1,9 @@
+# The hypervisor itself. Not Terraform-managed (it is the thing TF talks to),
+# so it lives here by hand. Guests are appended by 10-guests.ini (generated).
+all:
+  children:
+    proxmox_hosts:
+      hosts:
+        cerebro:
+          ansible_host: 10.38.194.11
+          ansible_user: root

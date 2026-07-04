@@ -1,0 +1,6 @@
+---
+- name: Configure Postgres guest
+  hosts: postgres
+  roles:
+    - common
+    # - postgres   # add a postgres role when ready

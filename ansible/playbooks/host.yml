@@ -1,0 +1,8 @@
+---
+- name: Configure Cerebro (the Proxmox host)
+  hosts: proxmox_hosts
+  roles:
+    - common
+    - tailscale
+  # Note: do NOT template into /etc/pve here — that is pmxcfs (a replicated DB).
+  # Proxmox-native config (storage, users, firewall) goes through the API / pvesh.

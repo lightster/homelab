@@ -1,0 +1,4 @@
+# Create the real, ENCRYPTED file with:
+#   ansible-vault create inventory/group_vars/all/vault.yml
+# then paste contents like this into the editor it opens:
+vault_tailscale_authkey: "tskey-auth-xxxxxxxxxxxx"
