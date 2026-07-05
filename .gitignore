@@ -1,0 +1,20 @@
+# --- OpenTofu / Terraform ---
+terraform/.terraform/
+# .terraform.lock.hcl IS committed — it pins provider checksums across machines.
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+# real secrets (Linode S3 keys, state passphrase, Proxmox token) live here;
+# only the .example is committed
+terraform/.env.sh
+
+# --- Ansible ---
+# vault.yml IS committed (it is encrypted); the plaintext example is not secret.
+*.retry
+ansible/inventory/10-guests.ini
+
+# --- misc ---
+.DS_Store
+*.swp
