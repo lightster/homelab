@@ -27,6 +27,14 @@
     state: started
     enabled: true
 
+- name: Enable IPv4 forwarding for Tailscale subnet routing
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_file: /etc/sysctl.d/99-tailscale-subnet-router.conf
+    reload: true
+  when: tailscale_ip_forwarding
+
 - name: Check tailscale status
   ansible.builtin.command: tailscale status --json
   register: ts_status
