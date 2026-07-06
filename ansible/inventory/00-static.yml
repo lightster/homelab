@@ -1,0 +1,7 @@
+all:
+  children:
+    proxmox_hosts:
+      hosts:
+        cerebro:
+          ansible_host: 10.38.194.11
+          ansible_user: root

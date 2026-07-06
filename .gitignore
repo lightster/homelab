@@ -6,14 +6,17 @@ terraform/.terraform/
 *.tfplan
 crash.log
 crash.*.log
-# real secrets (Linode S3 keys, state passphrase, Proxmox token) live here;
-# only the .example is committed
-terraform/.env.sh
 
 # --- Ansible ---
 # vault.yml IS committed (it is encrypted); the plaintext example is not secret.
 *.retry
 ansible/inventory/10-guests.ini
+
+# --- secrets ---
+# Per-tool secrets live in .env.sh files (Terraform: Linode/Proxmox creds;
+# Ansible: vault password). Ignore every .env.sh in any dir; only the committed
+# .example files are tracked.
+.env.sh
 
 # --- misc ---
 .DS_Store
