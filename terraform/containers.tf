@@ -4,3 +4,57 @@ resource "proxmox_download_file" "debian_lxc" {
   node_name    = var.target_node
   url          = "http://download.proxmox.com/images/system/${var.debian_lxc_template}"
 }
+
+resource "proxmox_virtual_environment_container" "postgres01" {
+  node_name     = var.target_node
+  unprivileged  = true
+  start_on_boot = true
+  tags          = ["postgres", "terraform"]
+
+  cpu {
+    cores = 2
+  }
+
+  memory {
+    dedicated = 2048
+    swap      = 512
+  }
+
+  disk {
+    datastore_id = var.lxc_datastore
+    size         = 20
+  }
+
+  network_interface {
+    name   = "eth0"
+    bridge = "vmbr0"
+  }
+
+  operating_system {
+    template_file_id = proxmox_download_file.debian_lxc.id
+    type             = "debian"
+  }
+
+  initialization {
+    hostname = "postgres01"
+
+    ip_config {
+      ipv4 {
+        address = "10.38.194.12/24"
+        gateway = var.gateway
+      }
+    }
+
+    dns {
+      servers = [var.pihole_dns]
+    }
+
+    user_account {
+      keys = local.ssh_public_keys
+    }
+  }
+
+  features {
+    nesting = false
+  }
+}

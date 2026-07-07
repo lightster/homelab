@@ -28,6 +28,12 @@ variable "gateway" {
   default     = "10.38.194.38"
 }
 
+variable "pihole_dns" {
+  type        = string
+  description = "Pi-hole resolver IP (mind-flayer, the Raspberry Pi)"
+  default     = "10.38.194.10"
+}
+
 variable "debian_lxc_template" {
   type    = string
   default = "debian-13-standard_13.1-2_amd64.tar.zst"
