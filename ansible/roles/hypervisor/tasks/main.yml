@@ -46,6 +46,7 @@
     tailscale up
     --authkey {{ tailscale_authkey }}
     --hostname {{ tailscale_hostname }}
+    {{ ('--advertise-tags=' + tailscale_tags) if tailscale_tags else '' }}
   when: >-
     ts_status.rc != 0 or
     (ts_status.stdout | from_json).BackendState | default("NoState") != "Running"

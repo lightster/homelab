@@ -1,3 +1,4 @@
 ---
 tailscale_set_args: "--advertise-routes=10.38.194.0/24"
 tailscale_ip_forwarding: true
+tailscale_tags: "tag:infra,tag:subnet-router"

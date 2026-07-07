@@ -1,3 +1,4 @@
-# The Tailscale auth key is an ephemeral operator credential (rotates ~90 days),
-# so it comes from the environment rather than vault.
-tailscale_authkey: "{{ lookup('env', 'TAILSCALE_AUTHKEY') }}"
+# Auth key for enrolling tag-owned infrastructure nodes. Ephemeral operator
+# credential (rotates ~90 days), so it comes from the environment rather than
+# vault.
+tailscale_authkey: "{{ lookup('env', 'TAILSCALE_INFRA_AUTHKEY') }}"
