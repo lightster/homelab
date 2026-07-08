@@ -1,0 +1,5 @@
+---
+postgres_version: 18
+postgres_listen_addresses: "*"
+postgres_allowed_subnet: "10.38.194.0/24"
+postgres_service: "postgresql@{{ postgres_version }}-main"
