@@ -1,0 +1,90 @@
+---
+- name: Grant passwordless sudo to the dev user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ devbox_user }}"
+    content: "{{ devbox_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ devbox_base_packages }}"
+    state: present
+    update_cache: true
+
+- name: Add Docker apt repo
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: https://download.docker.com/linux/debian
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: stable
+    signed_by: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Install Docker engine and compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Add dev user to sudo and docker groups
+  ansible.builtin.user:
+    name: "{{ devbox_user }}"
+    groups:
+      - sudo
+      - docker
+    append: true
+
+- name: Add mise apt repo
+  ansible.builtin.deb822_repository:
+    name: mise
+    types: deb
+    uris: https://mise.jdx.dev/deb
+    suites: stable
+    components: main
+    architectures: amd64
+    signed_by: https://mise.jdx.dev/gpg-key.pub
+    state: present
+
+- name: Install mise
+  ansible.builtin.apt:
+    name: mise
+    state: present
+    update_cache: true
+
+- name: Expose mise runtimes to login shells (including the JetBrains backend)
+  ansible.builtin.copy:
+    dest: /etc/profile.d/mise.sh
+    mode: "0644"
+    content: |
+      if [ -d "$HOME/.local/share/mise/shims" ]; then
+        PATH="$HOME/.local/share/mise/shims:$PATH"
+      fi
+
+- name: Activate mise in the dev user's interactive shell
+  ansible.builtin.lineinfile:
+    path: "/home/{{ devbox_user }}/.bashrc"
+    line: 'eval "$(mise activate bash)"'
+    create: true
+    owner: "{{ devbox_user }}"
+    group: "{{ devbox_user }}"
+    mode: "0644"
+
+- name: Raise inotify watch limit for IDE indexing
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_watches
+    value: "{{ devbox_inotify_max_user_watches }}"
+    sysctl_file: /etc/sysctl.d/99-devbox.conf
+    reload: true
+
+- name: Ensure docker is running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

@@ -3,3 +3,8 @@
   hosts: postgres
   roles:
     - postgres
+
+- name: Configure dev guest
+  hosts: dev
+  roles:
+    - devbox

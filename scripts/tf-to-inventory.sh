@@ -17,7 +17,7 @@ OUT="ansible/inventory/10-guests.ini"
     | group_by(.value.group)
     | map(
         \"[\" + .[0].value.group + \"]\",
-        (.[] | .key + \" ansible_host=\" + .value.ip + \" ansible_user=root\")
+        (.[] | .key + \" ansible_host=\" + .value.ip + \" ansible_user=\" + .value.user)
       )
     | flatten
     | .[]

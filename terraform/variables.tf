@@ -39,9 +39,33 @@ variable "debian_lxc_template" {
   default = "debian-13-standard_13.1-2_amd64.tar.zst"
 }
 
+variable "debian_cloud_image" {
+  type        = string
+  description = "URL of the Debian cloud image (qcow2) imported for VM disks"
+  default     = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+}
+
+variable "debian_cloud_image_file" {
+  type        = string
+  description = "File name to store the downloaded cloud image as (keep the .qcow2 extension so Proxmox detects the format on import)"
+  default     = "debian-13-genericcloud-amd64.qcow2"
+}
+
 variable "lxc_datastore" {
   type    = string
   default = "local-lvm"
+}
+
+variable "vm_datastore" {
+  type        = string
+  description = "Datastore for VM disks"
+  default     = "local-lvm"
+}
+
+variable "guest_agent_vendor_snippet" {
+  type        = string
+  description = "Proxmox file ID of the cloud-init vendor snippet that installs qemu-guest-agent at first boot (written to the host by the hypervisor Ansible role)"
+  default     = "local:snippets/qemu-guest-agent.yaml"
 }
 
 variable "tailscale_oauth_client_id" {

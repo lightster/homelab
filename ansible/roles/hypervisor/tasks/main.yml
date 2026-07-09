@@ -56,3 +56,39 @@
   ansible.builtin.command: "tailscale set {{ tailscale_set_args }}"
   when: tailscale_set_args | trim | length > 0
   changed_when: false
+
+- name: Ensure the Proxmox snippets directory exists
+  ansible.builtin.file:
+    path: /var/lib/vz/snippets
+    state: directory
+    mode: "0755"
+
+- name: Install the qemu-guest-agent cloud-init vendor snippet
+  ansible.builtin.copy:
+    dest: /var/lib/vz/snippets/qemu-guest-agent.yaml
+    mode: "0644"
+    content: |
+      #cloud-config
+      # Referenced by VMs as vendor-data (terraform/vms.tf) so the guest agent
+      # is present at first boot and agent=true holds from the first apply.
+      package_update: true
+      packages:
+        - qemu-guest-agent
+      runcmd:
+        - systemctl enable --now qemu-guest-agent
+
+- name: Read local datastore config
+  ansible.builtin.command: /usr/bin/pvesh get /storage/local --output-format json
+  register: local_datastore
+  changed_when: false
+
+- name: Enable required content types on the local datastore
+  ansible.builtin.command: >-
+    /usr/sbin/pvesm set local --content {{ (existing_content + required_content) | unique | join(',') }}
+  vars:
+    existing_content: "{{ (local_datastore.stdout | from_json).content | split(',') }}"
+    required_content:
+      - snippets
+      - import
+  when: "required_content | difference(existing_content) | length > 0"
+  changed_when: true
