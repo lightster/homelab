@@ -58,7 +58,7 @@
     state: present
     update_cache: true
 
-- name: Expose mise runtimes to login shells (including the JetBrains backend)
+- name: Expose mise runtimes to login shells
   ansible.builtin.copy:
     dest: /etc/profile.d/mise.sh
     mode: "0644"
@@ -75,6 +75,29 @@
     owner: "{{ devbox_user }}"
     group: "{{ devbox_user }}"
     mode: "0644"
+
+- name: Expose ~/.local/bin to login shells
+  ansible.builtin.copy:
+    dest: /etc/profile.d/local-bin.sh
+    mode: "0644"
+    content: |
+      if [ -d "$HOME/.local/bin" ]; then
+        PATH="$HOME/.local/bin:$PATH"
+      fi
+
+- name: Check whether Claude Code is already installed
+  ansible.builtin.stat:
+    path: "/home/{{ devbox_user }}/.local/bin/claude"
+  become: false
+  register: devbox_claude_binary
+
+- name: Install Claude Code via the native installer
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+    executable: /bin/bash
+  become: false
+  when: not devbox_claude_binary.stat.exists
+  changed_when: true
 
 - name: Raise inotify watch limit for IDE indexing
   ansible.posix.sysctl:
