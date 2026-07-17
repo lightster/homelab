@@ -7,4 +7,5 @@
 - name: Configure dev guest
   hosts: dev
   roles:
+    - tailscale
     - devbox

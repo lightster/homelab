@@ -1,0 +1,2 @@
+---
+tailscale_authkey: "{{ lookup('env', 'TAILSCALE_PERSONAL_AUTHKEY') }}"

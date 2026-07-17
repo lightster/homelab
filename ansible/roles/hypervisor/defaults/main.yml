@@ -1,5 +1,1 @@
 ---
-tailscale_hostname: "{{ inventory_hostname }}"
-tailscale_set_args: ""
-tailscale_ip_forwarding: false
-tailscale_tags: ""
