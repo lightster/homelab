@@ -42,7 +42,7 @@ variable "debian_lxc_template" {
 variable "debian_cloud_image" {
   type        = string
   description = "URL of the Debian cloud image (qcow2) imported for VM disks"
-  default     = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+  default     = "https://cloud.debian.org/images/cloud/trixie/20260712-2537/debian-13-genericcloud-amd64-20260712-2537.qcow2"
 }
 
 variable "debian_cloud_image_file" {
