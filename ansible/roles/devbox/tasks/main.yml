@@ -99,6 +99,20 @@
   when: not devbox_claude_binary.stat.exists
   changed_when: true
 
+- name: Allow bubblewrap unprivileged user namespaces via AppArmor
+  ansible.builtin.copy:
+    dest: /etc/apparmor.d/bwrap
+    mode: "0644"
+    content: |
+      abi <abi/4.0>,
+      include <tunables/global>
+
+      profile bwrap /usr/bin/bwrap flags=(unconfined) {
+        userns,
+        include if exists <local/bwrap>
+      }
+  notify: Reload AppArmor
+
 - name: Raise inotify watch limit for IDE indexing
   ansible.posix.sysctl:
     name: fs.inotify.max_user_watches
