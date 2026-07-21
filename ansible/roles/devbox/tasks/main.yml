@@ -41,6 +41,11 @@
       - docker
     append: true
 
+- name: Set zsh as the dev user's default shell
+  ansible.builtin.user:
+    name: "{{ devbox_user }}"
+    shell: /usr/bin/zsh
+
 - name: Add mise apt repo
   ansible.builtin.deb822_repository:
     name: mise
