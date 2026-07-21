@@ -64,7 +64,7 @@ Datastore.Allocate Datastore.AllocateSpace Datastore.AllocateTemplate Datastore.
 Pool.Allocate Pool.Audit Sys.Audit Sys.Console Sys.Modify SDN.Use \
 VM.Allocate VM.Audit VM.Clone VM.Config.CDROM VM.Config.CPU VM.Config.Cloudinit \
 VM.Config.Disk VM.Config.HWType VM.Config.Memory VM.Config.Network VM.Config.Options \
-VM.Migrate VM.PowerMgmt VM.Snapshot \
+VM.GuestAgent.Audit VM.Migrate VM.PowerMgmt VM.Snapshot \
 User.Modify Group.Allocate Realm.AllocateUser Mapping.Audit Mapping.Modify Mapping.Use"
 
 pveum user add terraform@pve
