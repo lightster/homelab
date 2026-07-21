@@ -46,6 +46,23 @@
     name: "{{ devbox_user }}"
     shell: /usr/bin/zsh
 
+- name: Replace the default MOTD with an ASCII banner
+  ansible.builtin.copy:
+    dest: /etc/motd
+    mode: "0644"
+    content: |2
+
+       _           _          __
+      | |__   ___ | |__     ('>
+      | '_ \ / _ \| '_ \     /rr
+      | |_) | (_) | |_) |   *\))_
+      |_.__/ \___/|_.__/
+
+- name: Suppress the kernel-version line from the dynamic MOTD
+  ansible.builtin.file:
+    path: /etc/update-motd.d/10-uname
+    state: absent
+
 - name: Add mise apt repo
   ansible.builtin.deb822_repository:
     name: mise
