@@ -1,7 +1,12 @@
-.PHONY: init plan apply inventory host guests
+.PHONY: install init plan apply inventory host guests
 
 TOFU = set -a && . terraform/.env.sh && set +a && cd terraform && tofu
 ANSIBLE = set -a && . ansible/.env.sh && set +a && cd ansible && ansible-playbook
+
+install:
+	mise trust
+	mise install
+	cd ansible && mise exec -- ansible-galaxy install -r requirements.yml
 
 init:
 	$(TOFU) init
