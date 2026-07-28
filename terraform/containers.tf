@@ -57,4 +57,13 @@ resource "proxmox_virtual_environment_container" "postgres01" {
   features {
     nesting = false
   }
+
+  lifecycle {
+    prevent_destroy = true
+
+    # Proxmox only accepts container SSH keys at creation time, so the provider
+    # marks them create-only and any edit to ssh_keys.pub would otherwise force
+    # a rebuild. The ssh_keys role reconciles authorized_keys after creation.
+    ignore_changes = [initialization[0].user_account[0].keys]
+  }
 }
