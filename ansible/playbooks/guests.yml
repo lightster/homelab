@@ -2,10 +2,12 @@
 - name: Configure Postgres guest
   hosts: postgres
   roles:
+    - ssh_keys
     - postgres
 
 - name: Configure dev guest
   hosts: dev
   roles:
+    - ssh_keys
     - tailscale
     - devbox
