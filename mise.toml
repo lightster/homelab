@@ -1,4 +1,4 @@
 [tools]
 opentofu = "latest"
 jq = "latest"
-"pipx:ansible" = "14.1.0"
+"pipx:ansible-core" = "2.21.2"
