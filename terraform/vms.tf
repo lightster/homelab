@@ -62,4 +62,8 @@ resource "proxmox_virtual_environment_vm" "bob" {
       keys     = local.ssh_public_keys
     }
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }

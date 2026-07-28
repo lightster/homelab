@@ -57,4 +57,8 @@ resource "proxmox_virtual_environment_container" "postgres01" {
   features {
     nesting = false
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
