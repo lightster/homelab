@@ -60,5 +60,6 @@ resource "proxmox_virtual_environment_container" "postgres01" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes = [initialization[0].user_account[0]]
   }
 }

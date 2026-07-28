@@ -65,5 +65,6 @@ resource "proxmox_virtual_environment_vm" "bob" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes = [initialization[0].user_account[0]]
   }
 }
