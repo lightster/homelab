@@ -1,0 +1,6 @@
+---
+- name: Authorize the shared SSH public keys
+  ansible.posix.authorized_key:
+    user: "{{ ssh_keys_user }}"
+    key: "{{ lookup('ansible.builtin.file', ssh_keys_file) }}"
+    state: present

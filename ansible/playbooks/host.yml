@@ -2,5 +2,6 @@
 - name: Configure Cerebro (the Proxmox host)
   hosts: proxmox_hosts
   roles:
+    - ssh_keys
     - tailscale
     - hypervisor
