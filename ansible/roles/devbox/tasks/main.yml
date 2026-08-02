@@ -135,6 +135,15 @@
       }
   notify: Reload AppArmor
 
+- name: Accept COLORTERM from the SSH client for truecolor detection
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-acceptenv-colorterm.conf
+    mode: "0644"
+    content: |
+      AcceptEnv COLORTERM
+    validate: sshd -t -f %s
+  notify: Restart ssh
+
 - name: Raise inotify watch limit for IDE indexing
   ansible.posix.sysctl:
     name: fs.inotify.max_user_watches
