@@ -10,6 +10,7 @@ devbox_base_packages:
   - mosh
   - bubblewrap
   - socat
+  - python3-venv
   - zsh
 
 # JetBrains indexing consumes inotify watches; the default (~8192) is too low.
