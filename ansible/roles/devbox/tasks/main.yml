@@ -12,27 +12,6 @@
     state: present
     update_cache: true
 
-- name: Add Docker apt repo
-  ansible.builtin.deb822_repository:
-    name: docker
-    types: deb
-    uris: https://download.docker.com/linux/debian
-    suites: "{{ ansible_facts['distribution_release'] }}"
-    components: stable
-    signed_by: https://download.docker.com/linux/debian/gpg
-    state: present
-
-- name: Install Docker engine and compose plugin
-  ansible.builtin.apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
-    state: present
-    update_cache: true
-
 - name: Add dev user to sudo and docker groups
   ansible.builtin.user:
     name: "{{ devbox_user }}"
@@ -150,9 +129,3 @@
     value: "{{ devbox_inotify_max_user_watches }}"
     sysctl_file: /etc/sysctl.d/99-devbox.conf
     reload: true
-
-- name: Ensure docker is running
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true

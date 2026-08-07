@@ -10,4 +10,5 @@
   roles:
     - ssh_keys
     - tailscale
+    - docker
     - devbox
