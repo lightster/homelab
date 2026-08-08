@@ -1,0 +1,43 @@
+---
+- name: Install rclone
+  ansible.builtin.apt:
+    name: rclone
+    state: present
+    update_cache: true
+
+- name: Create the paperless directory tree
+  ansible.builtin.file:
+    path: "{{ paperless_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ paperless_owner }}"
+    group: "{{ paperless_group }}"
+    mode: "0755"
+  loop:
+    - consume
+    - data
+    - export
+    - media
+
+- name: Write the paperless environment file
+  ansible.builtin.template:
+    src: paperless.env.j2
+    dest: "{{ paperless_dir }}/paperless.env"
+    owner: "{{ paperless_owner }}"
+    group: "{{ paperless_group }}"
+    mode: "0600"
+  no_log: true
+  notify: Restart paperless
+
+- name: Write the paperless compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ paperless_dir }}/docker-compose.yml"
+    owner: "{{ paperless_owner }}"
+    group: "{{ paperless_group }}"
+    mode: "0644"
+  notify: Restart paperless
+
+- name: Bring the paperless stack up
+  community.docker.docker_compose_v2:
+    project_src: "{{ paperless_dir }}"
+    state: present

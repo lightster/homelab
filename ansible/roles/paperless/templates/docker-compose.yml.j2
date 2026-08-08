@@ -1,0 +1,41 @@
+# MANAGED BY ANSIBLE — edit roles/paperless/templates/docker-compose.yml.j2
+services:
+  broker:
+    image: {{ paperless_redis_image }}
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
+  gotenberg:
+    image: {{ paperless_gotenberg_image }}
+    restart: unless-stopped
+    # Chromium through Gotenburg allows for .eml files to be converted.
+    # Disabling JavaScript and restricting the allow list stops tracking pixels
+    # and other external content from being fetched during conversion.
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  tika:
+    image: {{ paperless_tika_image }}
+    restart: unless-stopped
+
+  webserver:
+    image: {{ paperless_image }}
+    restart: unless-stopped
+    depends_on:
+      - broker
+      - gotenberg
+      - tika
+    ports:
+      - "{{ paperless_port }}:8000"
+    volumes:
+      - {{ paperless_dir }}/data:/usr/src/paperless/data
+      - {{ paperless_dir }}/media:/usr/src/paperless/media
+      - {{ paperless_dir }}/export:/usr/src/paperless/export
+      - {{ paperless_dir }}/consume:/usr/src/paperless/consume
+    env_file: paperless.env
+
+volumes:
+  redisdata:

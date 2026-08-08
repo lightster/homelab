@@ -1,0 +1,39 @@
+---
+paperless_dir: /srv/paperless
+
+paperless_owner: lightster
+paperless_group: lightster
+
+# Must match the owner above, or the container cannot read files copied into the
+# consume directory and they are silently never imported.
+paperless_uid: 1000
+paperless_gid: 1000
+
+paperless_image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+paperless_redis_image: docker.io/library/redis:8
+paperless_gotenberg_image: docker.io/gotenberg/gotenberg:8.25
+paperless_tika_image: docker.io/apache/tika:3.3.1.0
+
+paperless_port: 8000
+paperless_timezone: America/Los_Angeles
+paperless_ocr_language: eng
+
+paperless_db_host: 10.38.194.12
+paperless_db_port: 5432
+paperless_db_name: paperless
+paperless_db_user: paperless
+
+# The product of these should approximate the guest's core count. Raise both
+# alongside the cores when working through a large import backlog.
+paperless_task_workers: 2
+paperless_threads_per_worker: 2
+
+paperless_admin_user: admin
+paperless_admin_mail: lightster@gmail.com
+
+paperless_url: "http://10.38.194.14:{{ paperless_port }}"
+
+paperless_hostnames:
+  - localhost
+  - nancy
+  - 10.38.194.14

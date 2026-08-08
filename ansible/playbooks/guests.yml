@@ -12,3 +12,10 @@
     - tailscale
     - docker
     - devbox
+
+- name: Configure paperless guest
+  hosts: paperless
+  roles:
+    - ssh_keys
+    - docker
+    - paperless
