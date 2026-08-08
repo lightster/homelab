@@ -1,2 +1,3 @@
 ---
 vault_postgres_superuser_password: ""
+vault_paperless_db_password: ""
