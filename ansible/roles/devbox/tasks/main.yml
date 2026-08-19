@@ -129,3 +129,60 @@
     value: "{{ devbox_inotify_max_user_watches }}"
     sysctl_file: /etc/sysctl.d/99-devbox.conf
     reload: true
+
+- name: Enable the SysRq keys needed for out-of-band recovery
+  ansible.posix.sysctl:
+    name: kernel.sysrq
+    value: "{{ devbox_kernel_sysrq }}"
+    sysctl_file: /etc/sysctl.d/99-devbox.conf
+    reload: true
+
+- name: Create and format the swapfile
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      dd if=/dev/zero of={{ devbox_swapfile_path }}.tmp bs=1M count={{ devbox_swapfile_size_mb }}
+      chmod 0600 {{ devbox_swapfile_path }}.tmp
+      mkswap {{ devbox_swapfile_path }}.tmp
+      mv {{ devbox_swapfile_path }}.tmp {{ devbox_swapfile_path }}
+    executable: /bin/bash
+    creates: "{{ devbox_swapfile_path }}"
+
+- name: Add the swapfile to fstab
+  ansible.posix.mount:
+    path: none
+    src: "{{ devbox_swapfile_path }}"
+    fstype: swap
+    opts: sw
+    state: present
+
+- name: Check which swap devices are active
+  ansible.builtin.command:
+    cmd: swapon --show=NAME --noheadings
+  register: devbox_active_swap
+  changed_when: false
+
+- name: Activate the swapfile
+  ansible.builtin.command:
+    cmd: swapon {{ devbox_swapfile_path }}
+  when: devbox_swapfile_path not in devbox_active_swap.stdout_lines
+
+- name: Install earlyoom
+  ansible.builtin.apt:
+    name: earlyoom
+    state: present
+    update_cache: true
+
+- name: Configure earlyoom to spare the interactive session
+  ansible.builtin.copy:
+    dest: /etc/default/earlyoom
+    mode: "0644"
+    content: |
+      EARLYOOM_ARGS="-r {{ devbox_earlyoom_report_interval }} -p --avoid {{ devbox_earlyoom_avoid_regex }}"
+  notify: Restart earlyoom
+
+- name: Ensure earlyoom is running
+  ansible.builtin.service:
+    name: earlyoom
+    state: started
+    enabled: true

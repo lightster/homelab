@@ -15,3 +15,14 @@ devbox_base_packages:
 
 # JetBrains indexing consumes inotify watches; the default (~8192) is too low.
 devbox_inotify_max_user_watches: 524288
+
+# Debian defaults kernel.sysrq bitmask to 438, which leaves out the process-signalling
+# bit (64) that covers sysrq-f, the OOM killer. A value of 1 enables every
+# function, which is what lets a box that has exhausted memory be recovered
+# over the Proxmox serial/monitor console instead of being reset.
+devbox_kernel_sysrq: 1
+
+devbox_swapfile_path: /swapfile
+devbox_swapfile_size_mb: 8192
+devbox_earlyoom_avoid_regex: '^(sshd|mosh-server|zellij|zsh|systemd|login)'
+devbox_earlyoom_report_interval: 3600
