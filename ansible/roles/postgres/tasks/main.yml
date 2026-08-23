@@ -69,6 +69,10 @@
   community.postgresql.postgresql_db:
     name: "{{ item.name }}"
     owner: "{{ item.user }}"
+    encoding: "{{ item.encoding | default(postgres_default_encoding) }}"
+    lc_collate: "{{ item.lc_collate | default(postgres_default_locale) }}"
+    lc_ctype: "{{ item.lc_ctype | default(postgres_default_locale) }}"
+    template: template0
     state: present
   become: true
   become_user: postgres
