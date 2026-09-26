@@ -54,8 +54,11 @@ roles.
   committed. `terraform/.env.sh` holds Linode Object Storage (S3 state backend)
   creds, the state-encryption passphrase, and the Proxmox + Tailscale API
   credentials, exported as `TF_VAR_*`. `ansible/.env.sh` holds the Ansible Vault
-  password and the ephemeral Tailscale auth key (`TAILSCALE_INFRA_AUTHKEY`,
-  rotates ~90 days).
+  password and the Tailscale auth keys, which rotate ~90 days:
+  `TAILSCALE_INFRA_AUTHKEY` (`tag:infra`, the default for infrastructure
+  nodes) and `TAILSCALE_SUBNET_ROUTER_AUTHKEY` (`tag:infra` +
+  `tag:subnet-router`, used by Cerebro). A node must request exactly its key's
+  tags.
 - **Terraform state** lives in a Linode Object Storage bucket
   (`homelab-tfstate`, S3-compatible) and is **client-side encrypted** with a
   PBKDF2->AES-GCM passphrase (`encryption.tf`). Losing `TF_VAR_state_passphrase`
