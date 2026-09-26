@@ -5,3 +5,9 @@ pihole_timezone: America/Los_Angeles
 
 pihole_base_packages:
   - unattended-upgrades
+
+pihole_toml_path: /etc/pihole/pihole.toml
+
+# Only keys listed are managed; options not set here are left unchanged.
+# Array values replace the whole array on the host.
+pihole_config: {}

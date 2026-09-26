@@ -1,0 +1,15 @@
+---
+pihole_config:
+  dns.upstreams:
+    - "8.8.8.8"
+    - "8.8.4.4"
+  dns.hosts:
+    - "10.38.194.11 cerebro"
+    - "10.38.194.11 cerebro.lan"
+    - "10.38.194.13 bob"
+    - "10.38.194.13 bob.lan"
+  dhcp.active: true
+  dhcp.start: "10.38.194.100"
+  dhcp.end: "10.38.194.250"
+  dhcp.router: "10.38.194.38"
+  webserver.api.pwhash: "{{ pihole_pwhash }}"

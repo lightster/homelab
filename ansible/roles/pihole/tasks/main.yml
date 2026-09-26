@@ -29,3 +29,67 @@
 - name: Set the timezone
   ansible.builtin.command: "timedatectl set-timezone {{ pihole_timezone }}"
   when: pihole_timezone_current.stdout != pihole_timezone
+
+- name: Check that Pi-hole is installed
+  ansible.builtin.stat:
+    path: "{{ pihole_toml_path }}"
+  register: pihole_toml_stat
+
+- name: Fail when Pi-hole is not installed
+  ansible.builtin.assert:
+    that: pihole_toml_stat.stat.exists
+    fail_msg: >-
+      {{ pihole_toml_path }} does not exist. This role configures an existing
+      Pi-hole; run the Pi-hole installer on this host first.
+    quiet: true
+
+- name: Read the current Pi-hole configuration
+  ansible.builtin.script:
+    cmd: "dump-pihole-config.py {{ pihole_toml_path }}"
+    executable: python3
+  become: false
+  register: pihole_dump
+  changed_when: false
+  check_mode: false
+
+- name: Parse the current Pi-hole configuration
+  ansible.builtin.set_fact:
+    pihole_current: "{{ pihole_dump.stdout | from_json }}"
+    pihole_pending: {}
+
+- name: Fail on declared settings that Pi-hole does not recognize
+  ansible.builtin.assert:
+    that: pihole_unknown_keys | length == 0
+    fail_msg: "Not Pi-hole settings: {{ pihole_unknown_keys | join(', ') }}"
+    quiet: true
+  vars:
+    pihole_unknown_keys: "{{ pihole_config.keys() | difference(pihole_current.keys()) }}"
+
+- name: Collect declared settings that differ from the host
+  ansible.builtin.set_fact:
+    pihole_pending: "{{ pihole_pending | combine({item.key: item.value}) }}"
+  loop: "{{ pihole_config | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: pihole_current[item.key] != item.value
+
+- name: Report settings that will change
+  ansible.builtin.debug:
+    msg: "{{ item.key }}: {{ pihole_current[item.key] | to_json }} -> {{ item.value | to_json }}"
+  loop: "{{ pihole_pending | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  changed_when: true
+
+- name: Apply settings that differ from the host
+  ansible.builtin.command:
+    argv:
+      - pihole-FTL
+      - --config
+      - "{{ item.key }}"
+      # pihole-FTL takes arrays as JSON and scalars as bare words (ALL, true).
+      - "{{ item.value if item.value is string else item.value | to_json }}"
+  loop: "{{ pihole_pending | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: Restart pihole-FTL
