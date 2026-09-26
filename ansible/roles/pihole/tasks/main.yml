@@ -5,3 +5,27 @@
     content: "{{ pihole_user }} ALL=(ALL) NOPASSWD:ALL\n"
     mode: "0440"
     validate: visudo -cf %s
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ pihole_base_packages }}"
+    state: present
+    update_cache: true
+
+- name: Enable unattended upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+- name: Read the configured timezone
+  ansible.builtin.command: timedatectl show --property=Timezone --value
+  register: pihole_timezone_current
+  changed_when: false
+  check_mode: false
+
+- name: Set the timezone
+  ansible.builtin.command: "timedatectl set-timezone {{ pihole_timezone }}"
+  when: pihole_timezone_current.stdout != pihole_timezone

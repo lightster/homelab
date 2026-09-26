@@ -1,2 +1,7 @@
 ---
 pihole_user: "{{ ansible_user }}"
+
+pihole_timezone: America/Los_Angeles
+
+pihole_base_packages:
+  - unattended-upgrades
