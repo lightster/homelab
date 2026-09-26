@@ -14,6 +14,7 @@
     components: main
     signed_by: /usr/share/keyrings/tailscale-archive-keyring.gpg
     state: present
+    install_python_debian: true
 
 - name: Install tailscale
   ansible.builtin.apt:
@@ -40,6 +41,7 @@
   register: ts_status
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Authenticate with tailscale
   ansible.builtin.command: >-
