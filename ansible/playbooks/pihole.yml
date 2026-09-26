@@ -1,0 +1,6 @@
+---
+- name: Configure Mind Flayer (the Pi-hole host)
+  hosts: pihole
+  roles:
+    - ssh_keys
+    - pihole

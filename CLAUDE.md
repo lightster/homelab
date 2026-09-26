@@ -14,6 +14,8 @@ All workflows go through the `Makefile`, which sources the appropriate
 - `make inventory` — regenerate `ansible/inventory/10-guests.ini` from Terraform outputs
 - `make host` — run the `host.yml` playbook against Cerebro (implies `make inventory`)
 - `make guests` — run the `guests.yml` playbook against the guests (implies `make inventory`)
+- `make pihole` — run the `pihole.yml` playbook against Mind Flayer. Pass extra
+  `ansible-playbook` flags with `ARGS`, e.g. `make pihole ARGS="--check --diff"`
 
 There is no test suite or linter. `tofu plan` and Ansible's own idempotency
 (re-run `make host` / `make guests`) are the verification loop.

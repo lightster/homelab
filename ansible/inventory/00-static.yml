@@ -5,3 +5,8 @@ all:
         cerebro:
           ansible_host: 10.38.194.11
           ansible_user: root
+    pihole:
+      hosts:
+        mind-flayer:
+          ansible_host: 10.38.194.10
+          ansible_user: lightster

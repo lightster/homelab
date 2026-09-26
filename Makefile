@@ -1,4 +1,4 @@
-.PHONY: install init plan apply inventory host guests
+.PHONY: install init plan apply inventory host guests pihole
 
 TOFU = set -a && . terraform/.env.sh && set +a && cd terraform && tofu
 ANSIBLE = set -a && . ansible/.env.sh && set +a && cd ansible && ansible-playbook
@@ -25,3 +25,6 @@ host: inventory
 
 guests: inventory
 	$(ANSIBLE) playbooks/guests.yml
+
+pihole:
+	$(ANSIBLE) playbooks/pihole.yml $(ARGS)
