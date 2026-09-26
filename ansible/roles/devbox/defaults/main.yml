@@ -13,6 +13,9 @@ devbox_base_packages:
   - python3-venv
   - zsh
 
+devbox_browser_packages:
+  - chromium
+
 # JetBrains indexing consumes inotify watches; the default (~8192) is too low.
 devbox_inotify_max_user_watches: 524288
 

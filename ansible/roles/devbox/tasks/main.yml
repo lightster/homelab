@@ -12,6 +12,12 @@
     state: present
     update_cache: true
 
+- name: Install headless browser packages
+  ansible.builtin.apt:
+    name: "{{ devbox_browser_packages }}"
+    state: present
+    update_cache: true
+
 - name: Add dev user to sudo and docker groups
   ansible.builtin.user:
     name: "{{ devbox_user }}"
