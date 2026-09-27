@@ -1,1 +1,15 @@
 ---
+hypervisor_zfs_pool: tank
+hypervisor_zfs_arc_max_gb: 8
+
+hypervisor_zfs_datasets:
+  - vm
+  - data
+
+hypervisor_zfs_pool_properties:
+  compression: lz4
+  atime: "off"
+  xattr: sa
+  acltype: posix
+
+hypervisor_zfs_storage_id: tank

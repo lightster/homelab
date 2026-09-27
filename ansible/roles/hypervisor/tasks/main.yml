@@ -33,3 +33,6 @@
       - import
   when: "required_content | difference(existing_content) | length > 0"
   changed_when: true
+
+- name: Configure ZFS storage
+  ansible.builtin.import_tasks: storage.yml

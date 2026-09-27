@@ -76,7 +76,7 @@ pveum user token add terraform@pve tf --privsep 0
 The full token value for the Proxmox API key in `.env.sh` is
 `terraform@pve!tf=<uuid-output-by-above-command>`.
 
-6. Upload SSH key to Cerebro
+## 6. Upload SSH key to Cerebro
 
 `bgp/proxmox` needs SSH access for some operations, so upload your SSH key to
 the server:
@@ -85,13 +85,71 @@ the server:
 ssh-copy-id -i ~/.ssh/id_file.pub ssh-copy-id root@cerebro.lan
 ```
 
-## 6. Generate the state-encryption passphrase
+## 7. Create the ZFS pool on the second NVMe (on Cerebro)
+
+Cerebro's second NVMe (a Samsung 990 PRO 2 TB) is a ZFS pool named `tank`,
+serving both guest disks and host-level filesystems. Pool creation is a one-time
+manual step: it writes to a raw block device and is not recoverable if aimed at
+the wrong one. The `hypervisor` Ansible role configures everything downstream of
+the pool but deliberately will not create it.
+
+If the pool already exists — for example, Proxmox was reinstalled on the boot
+drive but this drive was untouched — do **not** run `zpool create`. Import the
+existing pool instead, which preserves its data:
+
+```sh
+zpool import tank
+```
+
+`zpool import` with no arguments lists the pools available to import.
+
+To create the pool on a blank drive, first identify the drive by its stable ID:
+
+```sh
+ls -l /dev/disk/by-id/ | grep -i samsung
+```
+
+Confirm it is the blank drive — a single `disk` row with no partitions, no
+filesystem, and no mountpoint:
+
+```sh
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT,MODEL /dev/nvme0n1
+```
+
+Stop if anything is listed underneath it. The other NVMe holds root, swap, and
+every running guest.
+
+Create the pool, using the by-id path and not `/dev/nvme0n1` — kernel
+enumeration order is not stable across reboots:
+
+```sh
+zpool create \
+  -o ashift=12 \
+  -O compression=lz4 \
+  -O atime=off \
+  -O xattr=sa \
+  -O acltype=posixacl \
+  tank /dev/disk/by-id/nvme-Samsung_SSD_990_PRO_2TB_<serial>
+```
+
+`ashift=12` selects 4 KiB sectors and cannot be changed later without destroying
+the pool. `acltype=posixacl` is required because the LXC guests rely on POSIX
+ACLs.
+
+Verify:
+
+```sh
+zpool status tank
+zpool get ashift tank
+```
+
+## 8. Generate the state-encryption passphrase
 
 Generate a strong random passphrase (e.g. `openssl rand -base64 32`). Store the
 random passphrase in 1Password. Losing the passphrase makes the encrypted state
 unrecoverable.
 
-## 7. Create the Tailscale credentials
+## 9. Create the Tailscale credentials
 
 In the Tailscale admin console, under **Settings > Trust credentials**, create
 an OAuth client for Terraform with these scopes, and nothing else:
@@ -117,7 +175,7 @@ Make the keys reusable so a rebuilt host can re-enroll without a new key. Keys
 expire after about 90 days; an already-enrolled node is unaffected, but
 re-enrolling needs a current key.
 
-## 8. Local env files
+## 10. Local env files
 
 Copy the templates and fill in the values:
 
@@ -128,7 +186,7 @@ cp ansible/.env.sh.example ansible/.env.sh
 
 Copy these working `.env.sh` files into 1Password.
 
-## 9. Follow steps in README.md
+## 11. Follow steps in README.md
 
 The steps in README.md for deploying should now work.
 

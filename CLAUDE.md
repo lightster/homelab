@@ -51,6 +51,15 @@ enrolled with `make pihole` **before** `make plan`/`make apply` — the one
 place where Ansible runs ahead of Terraform. The full rebuild procedure is in
 `docs/bootstrap.md`.
 
+Cerebro has two storage backends. `local-lvm` is an LVM-thin pool on the boot
+NVMe and is the default for every guest disk (`lxc_datastore`, `vm_datastore`).
+`tank` is a ZFS pool on a second NVMe: created once by hand per
+`docs/bootstrap.md`, then configured by the `hypervisor` role, which refuses to
+run if the pool is missing rather than creating one. Guests opt into `tank` by
+setting a disk's `datastore_id` to `"tank"`; that storage is scoped to the
+`tank/vm` dataset, while `tank/data` is host-level storage for bind mounts and
+is deliberately not registered with Proxmox.
+
 ### LXC gotchas
 
 Guest containers are minimal/unprivileged Debian LXCs with **no `sudo`**. The
