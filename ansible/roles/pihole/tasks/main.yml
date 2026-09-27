@@ -47,7 +47,6 @@
   ansible.builtin.script:
     cmd: "dump-pihole-config.py {{ pihole_toml_path }}"
     executable: python3
-  become: false
   register: pihole_dump
   changed_when: false
   check_mode: false
@@ -92,4 +91,3 @@
   loop: "{{ pihole_pending | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
-  notify: Restart pihole-FTL
