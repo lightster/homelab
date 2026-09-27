@@ -13,6 +13,7 @@ pihole_config:
     - "10.38.194.11 cerebro.lan"
     - "10.38.194.13 bob"
     - "10.38.194.13 bob.lan"
+  dns.listeningMode: "ALL"
   dhcp.active: true
   dhcp.start: "10.38.194.100"
   dhcp.end: "10.38.194.250"
