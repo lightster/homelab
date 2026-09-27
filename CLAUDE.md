@@ -48,7 +48,8 @@ configures it with the `pihole` role, which manages a declared subset of
 (`tailscale_dns_configuration` in `tailscale.tf`, with local DNS overridden).
 Because Terraform reads Mind Flayer's tailnet address, a rebuilt Pi must be
 enrolled with `make pihole` **before** `make plan`/`make apply` — the one
-place where Ansible runs ahead of Terraform.
+place where Ansible runs ahead of Terraform. The full rebuild procedure is in
+`docs/bootstrap.md`.
 
 ### LXC gotchas
 

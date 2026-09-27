@@ -91,16 +91,66 @@ Generate a strong random passphrase (e.g. `openssl rand -base64 32`). Store the
 random passphrase in 1Password. Losing the passphrase makes the encrypted state
 unrecoverable.
 
-## 7. Local env file
+## 7. Create the Tailscale credentials
 
-Copy the template and fill in the values:
+In the Tailscale admin console, under **Settings > Trust credentials**, create
+an OAuth client for Terraform with these scopes, and nothing else:
+
+- **Policy File**: Read + Write (`tailscale_acl`)
+- **DNS**: Read + Write (`tailscale_dns_configuration`)
+- **Devices: Core**: Read (looks up Mind Flayer's tailnet address)
+
+Its ID and secret go in `terraform/.env.sh`.
+
+Ansible enrolls nodes with auth keys, created under **Settings > Keys**. A
+tagged key only enrolls a node that requests exactly the key's tags, so there
+is one key per tag set. Tags must exist in the tailnet policy before a key can
+carry them, so create these after the first `make apply` has pushed the ACL.
+
+| Variable (`ansible/.env.sh`)      | Tags                             | Used by        |
+| --------------------------------- | -------------------------------- | -------------- |
+| `TAILSCALE_INFRA_AUTHKEY`         | `tag:infra`                      | Mind Flayer    |
+| `TAILSCALE_SUBNET_ROUTER_AUTHKEY` | `tag:infra`, `tag:subnet-router` | Cerebro        |
+| `TAILSCALE_PERSONAL_AUTHKEY`      | none (owned by your user)        | bob            |
+
+Make the keys reusable so a rebuilt host can re-enroll without a new key. Keys
+expire after about 90 days; an already-enrolled node is unaffected, but
+re-enrolling needs a current key.
+
+## 8. Local env files
+
+Copy the templates and fill in the values:
 
 ```sh
 cp terraform/.env.sh.example terraform/.env.sh
+cp ansible/.env.sh.example ansible/.env.sh
 ```
 
-Copy this working `.env.sh` file into 1Password.
+Copy these working `.env.sh` files into 1Password.
 
-## 8. Follow steps in README.md
+## 9. Follow steps in README.md
 
 The steps in README.md for deploying should now work.
+
+## Rebuilding Mind Flayer
+
+Mind Flayer serves the LAN's DHCP and is the tailnet's only DNS nameserver.
+While it is down, LAN devices keep their current leases but cannot renew, and
+tailnet devices lose DNS entirely. To restore DNS on a device in the meantime,
+disconnect it from Tailscale; to restore it tailnet-wide, set
+`override_local_dns = false` in `terraform/tailscale.tf` and `make apply`.
+
+1. In the Tailscale admin console, remove the old `mind-flayer` machine.
+   Otherwise the rebuilt Pi enrolls under a different name, or Terraform
+   resolves the dead node's address and points the tailnet's DNS at it.
+2. Flash Debian 13 (Raspberry Pi OS) with user `lightster`, SSH enabled, and a
+   key from `ssh_keys.pub` authorized. Give it the static address
+   `10.38.194.10`.
+3. Install Pi-hole with its installer. The `pihole` role configures an existing
+   install; it does not install Pi-hole.
+4. Run `make pihole ARGS=--ask-become-pass`. `lightster` needs a sudo password
+   until this first run installs passwordless sudo. The run restores Pi-hole's
+   DNS, DHCP, and admin password from the repo and enrolls the Pi on the
+   tailnet.
+5. Run `make plan` and `make apply` so the tailnet's DNS points at the Pi's
+   new tailnet address.
