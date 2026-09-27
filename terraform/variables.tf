@@ -70,12 +70,12 @@ variable "guest_agent_vendor_snippet" {
 
 variable "tailscale_oauth_client_id" {
   type        = string
-  description = "Tailscale OAuth client ID (Policy File read+write scope) for managing the tailnet policy"
+  description = "Tailscale OAuth client ID (Policy File + DNS read/write, Devices Core read) for managing the tailnet policy and DNS"
   sensitive   = true
 }
 
 variable "tailscale_oauth_client_secret" {
   type        = string
-  description = "Tailscale OAuth client secret (Policy File read+write scope) for managing the tailnet policy"
+  description = "Tailscale OAuth client secret (Policy File + DNS read/write, Devices Core read) for managing the tailnet policy and DNS"
   sensitive   = true
 }

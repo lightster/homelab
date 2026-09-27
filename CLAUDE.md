@@ -42,6 +42,14 @@ Cerebro advertises the LAN subnet as a subnet router, so the whole
 `10.38.194.0/24` is reachable over the tailnet. Terraform's `autoApprovers`
 auto-approves that route for `tag:subnet-router`.
 
+Mind Flayer is bare metal and lives in the hand-written inventory; `make pihole`
+configures it with the `pihole` role, which manages a declared subset of
+`pihole.toml`. Mind Flayer is also the tailnet's only DNS nameserver
+(`tailscale_dns_configuration` in `tailscale.tf`, with local DNS overridden).
+Because Terraform reads Mind Flayer's tailnet address, a rebuilt Pi must be
+enrolled with `make pihole` **before** `make plan`/`make apply` — the one
+place where Ansible runs ahead of Terraform.
+
 ### LXC gotchas
 
 Guest containers are minimal/unprivileged Debian LXCs with **no `sudo`**. The

@@ -22,3 +22,19 @@ resource "tailscale_acl" "this" {
     ]
   })
 }
+
+data "tailscale_device" "mind_flayer" {
+  hostname = "mind-flayer"
+}
+
+resource "tailscale_dns_configuration" "this" {
+  nameservers {
+    address = one([
+      for addr in data.tailscale_device.mind_flayer.addresses :
+      addr if !strcontains(addr, ":")
+    ])
+  }
+
+  override_local_dns = true
+  magic_dns          = true
+}
