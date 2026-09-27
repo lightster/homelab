@@ -1,4 +1,9 @@
 ---
+tailscale_tags: "tag:infra"
+# Pi-hole must keep resolving through its own configured upstreams; accepting
+# tailnet DNS would point the host's resolver at MagicDNS, and in turn at itself.
+tailscale_set_args: "--accept-dns=false"
+
 pihole_config:
   dns.upstreams:
     - "8.8.8.8"

@@ -3,4 +3,5 @@
   hosts: pihole
   roles:
     - ssh_keys
+    - tailscale
     - pihole
