@@ -50,11 +50,13 @@
   register: pihole_dump
   changed_when: false
   check_mode: false
+  no_log: true
 
 - name: Parse the current Pi-hole configuration
   ansible.builtin.set_fact:
     pihole_current: "{{ pihole_dump.stdout | from_json }}"
-    pihole_pending: {}
+    pihole_pending: []
+  no_log: true
 
 - name: Fail on declared settings that Pi-hole does not recognize
   ansible.builtin.assert:
@@ -66,18 +68,20 @@
 
 - name: Collect declared settings that differ from the host
   ansible.builtin.set_fact:
-    pihole_pending: "{{ pihole_pending | combine({item.key: item.value}) }}"
+    pihole_pending: "{{ pihole_pending + [item.key] }}"
   loop: "{{ pihole_config | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
   when: pihole_current[item.key] != item.value
+  no_log: "{{ item.key is search('pwhash|totp_secret') }}"
 
 - name: Report settings that will change
   ansible.builtin.debug:
-    msg: "{{ item.key }}: {{ pihole_current[item.key] | to_json }} -> {{ item.value | to_json }}"
-  loop: "{{ pihole_pending | dict2items }}"
-  loop_control:
-    label: "{{ item.key }}"
+    msg: >-
+      {{ item }}:
+      {{ '(secret changed)' if item is search('pwhash|totp_secret')
+         else (pihole_current[item] | to_json) ~ ' -> ' ~ (pihole_config[item] | to_json) }}
+  loop: "{{ pihole_pending }}"
   changed_when: true
 
 - name: Apply settings that differ from the host
@@ -85,9 +89,8 @@
     argv:
       - pihole-FTL
       - --config
-      - "{{ item.key }}"
+      - "{{ item }}"
       # pihole-FTL takes arrays as JSON and scalars as bare words (ALL, true).
-      - "{{ item.value if item.value is string else item.value | to_json }}"
-  loop: "{{ pihole_pending | dict2items }}"
-  loop_control:
-    label: "{{ item.key }}"
+      - "{{ pihole_config[item] if pihole_config[item] is string else pihole_config[item] | to_json }}"
+  loop: "{{ pihole_pending }}"
+  no_log: "{{ item is search('pwhash|totp_secret') }}"
