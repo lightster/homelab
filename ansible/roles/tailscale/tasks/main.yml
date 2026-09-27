@@ -43,15 +43,28 @@
   failed_when: false
   check_mode: false
 
+- name: Decide whether this node needs to authenticate
+  ansible.builtin.set_fact:
+    tailscale_needs_auth: >-
+      {{ ts_status.rc != 0 or
+         (ts_status.stdout | from_json).BackendState | default("NoState") != "Running" }}
+
+- name: Fail when no Tailscale auth key is set
+  ansible.builtin.assert:
+    that: tailscale_authkey | length > 0
+    fail_msg: >-
+      tailscale_authkey is empty. Set the auth key environment variable this
+      host reads (see ansible/.env.sh.example).
+    quiet: true
+  when: tailscale_needs_auth
+
 - name: Authenticate with tailscale
   ansible.builtin.command: >-
     tailscale up
     --authkey {{ tailscale_authkey }}
     --hostname {{ tailscale_hostname }}
     {{ ('--advertise-tags=' + tailscale_tags) if tailscale_tags else '' }}
-  when: >-
-    ts_status.rc != 0 or
-    (ts_status.stdout | from_json).BackendState | default("NoState") != "Running"
+  when: tailscale_needs_auth
   no_log: true
 
 - name: Apply tailscale settings

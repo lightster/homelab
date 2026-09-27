@@ -43,6 +43,8 @@
       Pi-hole; run the Pi-hole installer on this host first.
     quiet: true
 
+# pihole.toml holds password hashes and the TOTP secret, so the full dump is
+# kept out of task output.
 - name: Read the current Pi-hole configuration
   ansible.builtin.script:
     cmd: "dump-pihole-config.py {{ pihole_toml_path }}"
