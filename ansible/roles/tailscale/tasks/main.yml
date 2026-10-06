@@ -16,17 +16,35 @@
     state: present
     install_python_debian: true
 
-- name: Install tailscale
+- name: Install or upgrade tailscale
   ansible.builtin.apt:
     name: tailscale
-    state: present
+    state: latest
     update_cache: true
+  register: tailscale_package
 
 - name: Ensure tailscaled is running
   ansible.builtin.service:
     name: tailscaled
     state: started
     enabled: true
+
+# Installing or upgrading the package restarts tailscaled. Wait for it to
+# settle so the status check below does not mistake an enrolled node that is
+# still starting up for a logged-out one and re-run `tailscale up`.
+- name: Wait for tailscaled to settle after a package change
+  ansible.builtin.command: tailscale status --json
+  register: ts_settle
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  until: >-
+    ts_settle.stdout | default("") | length > 0 and
+    (ts_settle.stdout | from_json).BackendState | default("NoState")
+    not in ["NoState", "Starting"]
+  retries: 15
+  delay: 2
+  when: tailscale_package is changed
 
 - name: Enable IPv4 forwarding for Tailscale subnet routing
   ansible.posix.sysctl:
