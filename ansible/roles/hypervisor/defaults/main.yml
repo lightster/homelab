@@ -1,4 +1,7 @@
 ---
+hypervisor_packages:
+  - fio
+
 hypervisor_zfs_pool: tank
 hypervisor_zfs_arc_max_gb: 8
 

@@ -1,4 +1,10 @@
 ---
+- name: Install host packages
+  ansible.builtin.apt:
+    name: "{{ hypervisor_packages }}"
+    state: present
+    update_cache: true
+
 - name: Ensure the Proxmox snippets directory exists
   ansible.builtin.file:
     path: /var/lib/vz/snippets
