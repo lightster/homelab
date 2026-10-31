@@ -1,5 +1,0 @@
----
-postgres_databases:
-  - name: paperless
-    user: paperless
-    password: "{{ paperless_db_password }}"

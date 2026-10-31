@@ -12,10 +12,5 @@ output "guests" {
       group = "dev"
       user  = "lightster"
     }
-    nancy = {
-      ip    = split("/", proxmox_virtual_environment_vm.nancy.initialization[0].ip_config[0].ipv4[0].address)[0]
-      group = "paperless"
-      user  = "lightster"
-    }
   }
 }
