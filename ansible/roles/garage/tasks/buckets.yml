@@ -1,0 +1,120 @@
+---
+- name: Read existing buckets
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/ListBuckets"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_bucket_list
+  check_mode: false
+  no_log: true
+
+- name: Create missing buckets
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/CreateBucket"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      globalAlias: "{{ item.name }}"
+  loop: "{{ garage_buckets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in (garage_bucket_list.json | map(attribute='globalAliases') | flatten)
+  changed_when: true
+  no_log: true
+
+- name: Read existing keys
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/ListKeys"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_key_list
+  check_mode: false
+  no_log: true
+
+# Garage does not require key names to be unique, and keys are matched by name
+# below.
+- name: Fail when a key name is ambiguous
+  ansible.builtin.assert:
+    that: garage_key_list.json | selectattr('name', 'equalto', item.name) | list | length <= 1
+    fail_msg: "More than one Garage key is named {{ item.name }}."
+    quiet: true
+  loop: "{{ garage_buckets }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create missing keys
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/CreateKey"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+  loop: "{{ garage_buckets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in (garage_key_list.json | map(attribute='name'))
+  changed_when: true
+  no_log: true
+
+- name: Re-read buckets
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/ListBuckets"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_bucket_list
+  check_mode: false
+  no_log: true
+
+- name: Re-read keys
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/ListKeys"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_key_list
+  check_mode: false
+  no_log: true
+
+- name: Read each bucket's key permissions
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/GetBucketInfo?id={{ garage_bucket_id }}"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  vars:
+    garage_bucket_id: >-
+      {{ (garage_bucket_list.json | selectattr('globalAliases', 'contains', item.name) | first).id }}
+  loop: "{{ garage_buckets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: garage_bucket_info
+  check_mode: false
+  no_log: true
+
+- name: Grant each key read/write on its bucket
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/AllowBucketKey"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      bucketId: "{{ item.json.id }}"
+      accessKeyId: "{{ garage_key_id }}"
+      permissions:
+        read: true
+        write: true
+  vars:
+    garage_key_id: >-
+      {{ (garage_key_list.json | selectattr('name', 'equalto', item.item.name) | first).id }}
+    garage_key_perms: >-
+      {{ (item.json['keys'] | selectattr('accessKeyId', 'equalto', garage_key_id) | first
+          | default({'permissions': {}})).permissions }}
+  loop: "{{ garage_bucket_info.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: not (garage_key_perms.read | default(false) and garage_key_perms.write | default(false))
+  changed_when: true
+  no_log: true

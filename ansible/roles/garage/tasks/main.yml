@@ -130,3 +130,6 @@
   when: garage_layout.json.roles | length == 0
   changed_when: true
   no_log: true
+
+- name: Configure buckets and keys
+  ansible.builtin.import_tasks: buckets.yml

@@ -9,3 +9,5 @@ garage_admin_port: 3903
 
 garage_zone: cerebro
 garage_capacity_bytes: 100000000000
+
+garage_buckets: []
