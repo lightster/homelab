@@ -63,3 +63,68 @@ resource "proxmox_virtual_environment_container" "postgres01" {
     ignore_changes = [initialization[0].user_account[0]]
   }
 }
+
+resource "proxmox_virtual_environment_container" "garage01" {
+  node_name     = var.target_node
+  unprivileged  = true
+  start_on_boot = true
+  tags          = ["garage", "terraform"]
+
+  cpu {
+    cores = 1
+  }
+
+  memory {
+    dedicated = 1024
+    swap      = 512
+  }
+
+  disk {
+    datastore_id = var.lxc_datastore
+    size         = 8
+  }
+
+  mount_point {
+    volume = "tank"
+    size   = "100G"
+    path   = "/var/lib/garage"
+  }
+
+  network_interface {
+    name   = "eth0"
+    bridge = "vmbr0"
+  }
+
+  operating_system {
+    template_file_id = proxmox_download_file.debian_lxc.id
+    type             = "debian"
+  }
+
+  initialization {
+    hostname = "garage01"
+
+    ip_config {
+      ipv4 {
+        address = "10.38.194.15/24"
+        gateway = var.gateway
+      }
+    }
+
+    dns {
+      servers = [var.pihole_dns]
+    }
+
+    user_account {
+      keys = local.ssh_public_keys
+    }
+  }
+
+  features {
+    nesting = false
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [initialization[0].user_account[0]]
+  }
+}

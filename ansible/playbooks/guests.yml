@@ -18,3 +18,8 @@
   roles:
     - ssh_keys
     - tailscale
+
+- name: Configure Garage guest
+  hosts: garage
+  roles:
+    - ssh_keys

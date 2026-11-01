@@ -7,6 +7,11 @@ output "guests" {
       group = "postgres"
       user  = "root"
     }
+    garage01 = {
+      ip    = split("/", proxmox_virtual_environment_container.garage01.initialization[0].ip_config[0].ipv4[0].address)[0]
+      group = "garage"
+      user  = "root"
+    }
     bob = {
       ip    = split("/", proxmox_virtual_environment_vm.bob.initialization[0].ip_config[0].ipv4[0].address)[0]
       group = "dev"
