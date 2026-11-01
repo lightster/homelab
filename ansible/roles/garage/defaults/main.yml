@@ -1,0 +1,11 @@
+---
+garage_version: v2.4.1
+garage_binary_sha256: ae49f8de4aaee6b5ca305f7cbdccc8cd8a29b2804aac074649f18bfb83d0a2b6
+
+garage_dir: /var/lib/garage
+garage_s3_region: garage
+garage_s3_port: 3900
+garage_admin_port: 3903
+
+garage_zone: cerebro
+garage_capacity_bytes: 100000000000

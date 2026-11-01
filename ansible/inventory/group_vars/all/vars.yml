@@ -5,4 +5,7 @@ tailscale_authkey: "{{ lookup('env', 'TAILSCALE_INFRA_AUTHKEY') }}"
 
 postgres_superuser_password: "{{ vault_postgres_superuser_password }}"
 
+garage_rpc_secret: "{{ vault_garage_rpc_secret }}"
+garage_admin_token: "{{ vault_garage_admin_token }}"
+
 pihole_pwhash: "{{ vault_pihole_pwhash }}"

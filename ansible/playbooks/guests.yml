@@ -23,3 +23,4 @@
   hosts: garage
   roles:
     - ssh_keys
+    - garage

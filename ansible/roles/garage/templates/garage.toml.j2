@@ -1,0 +1,21 @@
+metadata_dir = "{{ garage_dir }}/meta"
+data_dir = "{{ garage_dir }}/data"
+db_engine = "lmdb"
+
+# A single node has no replicas to recover from after a crash, so writes are
+# fsynced rather than trusting the page cache.
+replication_factor = 1
+metadata_fsync = true
+data_fsync = true
+
+rpc_bind_addr = "127.0.0.1:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "{{ garage_rpc_secret }}"
+
+[s3_api]
+api_bind_addr = "0.0.0.0:{{ garage_s3_port }}"
+s3_region = "{{ garage_s3_region }}"
+
+[admin]
+api_bind_addr = "127.0.0.1:{{ garage_admin_port }}"
+admin_token = "{{ garage_admin_token }}"

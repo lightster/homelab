@@ -1,0 +1,132 @@
+---
+- name: Fail when Garage secrets are not set
+  ansible.builtin.assert:
+    that:
+      - garage_rpc_secret | length > 0
+      - garage_admin_token | length > 0
+    fail_msg: >-
+      garage_rpc_secret and garage_admin_token must be set in vault.yml
+      (vault_garage_rpc_secret, vault_garage_admin_token).
+    quiet: true
+
+- name: Create the garage system user
+  ansible.builtin.user:
+    name: garage
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ garage_dir }}"
+    create_home: false
+
+- name: Install the garage binary
+  ansible.builtin.get_url:
+    url: "https://garagehq.deuxfleurs.fr/_releases/{{ garage_version }}/x86_64-unknown-linux-musl/garage"
+    dest: /usr/local/bin/garage
+    checksum: "sha256:{{ garage_binary_sha256 }}"
+    mode: "0755"
+  notify: Restart garage
+
+- name: Create the metadata and data directories
+  ansible.builtin.file:
+    path: "{{ garage_dir }}/{{ item }}"
+    state: directory
+    owner: garage
+    group: garage
+    mode: "0750"
+  loop:
+    - meta
+    - data
+
+# Readable by the garage group for the daemon; root runs the CLI.
+- name: Write the garage config
+  ansible.builtin.template:
+    src: garage.toml.j2
+    dest: /etc/garage.toml
+    owner: root
+    group: garage
+    mode: "0640"
+  notify: Restart garage
+
+- name: Write the garage systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/garage.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Garage object storage
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=garage
+      Group=garage
+      Environment=RUST_LOG=garage=info
+      ExecStart=/usr/local/bin/garage server
+      Restart=on-failure
+      LimitNOFILE=42000
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Restart garage
+
+- name: Ensure garage is running
+  ansible.builtin.systemd_service:
+    name: garage
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Apply pending garage restarts before configuring the layout
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for the admin API and read the cluster status
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/GetClusterStatus"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_status
+  until: garage_status.status == 200
+  retries: 15
+  delay: 2
+  check_mode: false
+  no_log: true
+
+- name: Read the cluster layout
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/GetClusterLayout"
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+  register: garage_layout
+  check_mode: false
+  no_log: true
+
+# A fresh node has no role, so it cannot store anything until it is assigned
+# one. Only the empty layout is handled; later changes are made by hand.
+- name: Assign this node a storage role
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/UpdateClusterLayout"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      roles:
+        - id: "{{ garage_status.json.nodes[0].id }}"
+          zone: "{{ garage_zone }}"
+          capacity: "{{ garage_capacity_bytes | int }}"
+          tags: []
+  when: garage_layout.json.roles | length == 0
+  changed_when: true
+  no_log: true
+
+- name: Apply the staged layout
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/ApplyClusterLayout"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      version: "{{ garage_layout.json.version + 1 }}"
+  when: garage_layout.json.roles | length == 0
+  changed_when: true
+  no_log: true
