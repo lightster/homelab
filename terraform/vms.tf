@@ -68,3 +68,66 @@ resource "proxmox_virtual_environment_vm" "bob" {
     ignore_changes = [initialization[0].user_account[0]]
   }
 }
+
+resource "proxmox_virtual_environment_vm" "rift" {
+  name      = "rift"
+  node_name = var.target_node
+  on_boot   = true
+  tags      = ["apps", "terraform"]
+
+  agent {
+    enabled = true
+  }
+
+  cpu {
+    cores = 4
+    type  = "host"
+  }
+
+  memory {
+    dedicated = 16384
+  }
+
+  scsi_hardware = "virtio-scsi-single"
+
+  disk {
+    datastore_id = var.vm_datastore
+    import_from  = proxmox_download_file.debian_cloud.id
+    interface    = "scsi0"
+    size         = 50
+    iothread     = true
+    discard      = "on"
+    ssd          = true
+  }
+
+  serial_device {}
+
+  network_device {
+    bridge = "vmbr0"
+  }
+
+  initialization {
+    vendor_data_file_id = var.guest_agent_vendor_snippet
+
+    ip_config {
+      ipv4 {
+        address = "10.38.194.14/24"
+        gateway = var.gateway
+      }
+    }
+
+    dns {
+      servers = [var.pihole_dns]
+    }
+
+    user_account {
+      username = "lightster"
+      keys     = local.ssh_public_keys
+    }
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [initialization[0].user_account[0]]
+  }
+}

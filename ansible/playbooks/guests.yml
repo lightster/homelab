@@ -12,3 +12,9 @@
     - tailscale
     - docker
     - devbox
+
+- name: Configure apps guest
+  hosts: apps
+  roles:
+    - ssh_keys
+    - tailscale

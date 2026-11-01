@@ -12,5 +12,10 @@ output "guests" {
       group = "dev"
       user  = "lightster"
     }
+    rift = {
+      ip    = split("/", proxmox_virtual_environment_vm.rift.initialization[0].ip_config[0].ipv4[0].address)[0]
+      group = "apps"
+      user  = "lightster"
+    }
   }
 }
