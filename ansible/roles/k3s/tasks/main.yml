@@ -1,0 +1,53 @@
+---
+- name: Install installer dependencies
+  ansible.builtin.apt:
+    name: curl
+    state: present
+    update_cache: true
+
+- name: Create the k3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+
+- name: Write the k3s config
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/config.yaml
+    mode: "0600"
+    content: "{{ k3s_config | to_nice_yaml }}"
+  notify: Restart k3s
+
+- name: Read the installed k3s version
+  ansible.builtin.command: k3s --version
+  register: k3s_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Decide whether k3s needs installing or upgrading
+  ansible.builtin.set_fact:
+    k3s_needs_install: >-
+      {{ k3s_installed.rc != 0 or
+         (k3s_installed.stdout_lines | first).split()[2] != k3s_version }}
+
+- name: Download the k3s install script
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/k3s-io/k3s/{{ k3s_version | replace('+', '%2B') }}/install.sh"
+    dest: /usr/local/share/k3s-install.sh
+    checksum: "sha256:{{ k3s_install_script_sha256 }}"
+    mode: "0755"
+  when: k3s_needs_install
+
+- name: Install or upgrade k3s
+  ansible.builtin.command: /usr/local/share/k3s-install.sh
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  when: k3s_needs_install
+  changed_when: true
+
+- name: Ensure k3s is running
+  ansible.builtin.systemd_service:
+    name: k3s
+    state: started
+    enabled: true

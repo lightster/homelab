@@ -18,6 +18,7 @@
   roles:
     - ssh_keys
     - tailscale
+    - k3s
 
 - name: Configure Garage guest
   hosts: garage

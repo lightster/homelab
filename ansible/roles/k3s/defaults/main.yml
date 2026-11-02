@@ -1,0 +1,7 @@
+---
+k3s_version: v1.36.5+k3s1
+k3s_install_script_sha256: 46177d4c99440b4c0311b67233823a8e8a2fc09693f6c89af1a7161e152fbfad
+
+# Written to /etc/rancher/k3s/config.yaml; keys are k3s server flags.
+k3s_config:
+  secrets-encryption: true
