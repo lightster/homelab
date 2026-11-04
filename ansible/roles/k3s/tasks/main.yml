@@ -18,6 +18,14 @@
     content: "{{ k3s_config | to_nice_yaml }}"
   notify: Restart k3s
 
+- name: Write the k3s registry config
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/registries.yaml
+    mode: "0600"
+    content: "{{ k3s_registries | to_nice_yaml }}"
+  notify: Restart k3s
+  no_log: true
+
 - name: Read the installed k3s version
   ansible.builtin.command: k3s --version
   register: k3s_installed

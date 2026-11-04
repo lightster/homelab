@@ -9,3 +9,5 @@ garage_rpc_secret: "{{ vault_garage_rpc_secret }}"
 garage_admin_token: "{{ vault_garage_admin_token }}"
 
 pihole_pwhash: "{{ vault_pihole_pwhash }}"
+
+ghcr_read_token: "{{ vault_ghcr_read_token }}"

@@ -1,0 +1,7 @@
+---
+k3s_registries:
+  configs:
+    ghcr.io:
+      auth:
+        username: lightster
+        password: "{{ ghcr_read_token }}"

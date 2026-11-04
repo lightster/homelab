@@ -302,3 +302,28 @@ saving re-encrypts only the `data` and `stringData` values.
 
 If the recipients in `.sops.yaml` change, re-encrypt existing secrets with
 `sops updatekeys <file>`.
+
+## GHCR read token
+
+Private images and Flux's app manifest artifacts are pulled from GHCR with a
+classic personal access token that has only the `read:packages` scope.
+Fine-grained tokens do not support the container registry. The token is
+stored in two places, so rotating it means updating both:
+
+- `vault_ghcr_read_token` in Ansible Vault, which the `k3s` role writes to
+  rift's `/etc/rancher/k3s/registries.yaml` for image pulls. Apply it with
+  `make guests`.
+- `kubernetes/infrastructure/ghcr/ghcr-auth.secret.yaml`, which Flux uses to
+  pull OCI artifacts. Regenerate it from the repo root with:
+
+  ```sh
+  F=kubernetes/infrastructure/ghcr/ghcr-auth.secret.yaml
+  read -rs GHCR_TOKEN
+  jq -n --arg auth "$(printf 'lightster:%s' "$GHCR_TOKEN" | base64 -w0)" \
+      '{auths: {"ghcr.io": {auth: $auth}}}' \
+    | kubectl create secret generic ghcr-auth --namespace=flux-system \
+        --type=kubernetes.io/dockerconfigjson \
+        --from-file=.dockerconfigjson=/dev/stdin --dry-run=client -o yaml \
+    | sops encrypt --filename-override "$F" --input-type yaml --output-type yaml /dev/stdin > "$F"
+  unset GHCR_TOKEN
+  ```
