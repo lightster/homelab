@@ -260,3 +260,45 @@ This needs the `flux` CLI at the version recorded at the top of
 From here Flux manages its own manifests. To upgrade it, regenerate
 `gotk-components.yaml` with `flux install --export` from the new CLI version
 and merge the change.
+
+## Creating the SOPS keys
+
+Kubernetes secrets are committed as `*.secret.yaml` files under `kubernetes/`,
+encrypted with SOPS to two age keys listed in `.sops.yaml`:
+
+- **rift**: its private key lives in the `sops-age` secret in `flux-system`,
+  where Flux uses it to decrypt at apply time.
+- **personal**: its private key lives in 1Password and at
+  `~/.config/sops/age/keys.txt`, where `sops` looks for it by default, so
+  secrets can be edited without the cluster's key.
+
+The `infrastructure` and `apps` Kustomizations fail to reconcile until
+`sops-age` exists, so create it before Flux applies a revision with
+decryption enabled.
+
+1. Generate the rift key and load it into the cluster. Flux requires the
+   secret's key name to end in `.agekey`:
+
+   ```sh
+   age-keygen -o rift.agekey
+   kubectl -n flux-system create secret generic sops-age \
+     --from-file=age.agekey=rift.agekey
+   ```
+
+   Save the file's contents to 1Password, then delete `rift.agekey`.
+
+2. Generate the personal key and save it to 1Password:
+
+   ```sh
+   mkdir -p ~/.config/sops/age
+   age-keygen -o ~/.config/sops/age/keys.txt
+   ```
+
+3. Put both public keys (`age-keygen -y <file>` prints one) in `.sops.yaml`.
+
+To create or edit a secret, run `sops edit` on a path matching
+`kubernetes/**/*.secret.yaml`. A new file opens with a template to replace;
+saving re-encrypts only the `data` and `stringData` values.
+
+If the recipients in `.sops.yaml` change, re-encrypt existing secrets with
+`sops updatekeys <file>`.
