@@ -212,3 +212,51 @@ disconnect it from Tailscale; to restore it tailnet-wide, set
    tailnet.
 5. Run `make plan` and `make apply` so the tailnet's DNS points at the Pi's
    new tailnet address.
+
+## Bootstrapping Flux on rift
+
+Flux reconciles `kubernetes/clusters/rift` from this repo's `main` branch. The
+manifests under `kubernetes/clusters/rift/flux-system` are committed, so
+bootstrapping only installs them and gives Flux a read-only deploy key; nothing
+is pushed to the repo.
+
+This needs the `flux` CLI at the version recorded at the top of
+`gotk-components.yaml`, and a kubeconfig for rift.
+
+1. Check that the cluster meets Flux's prerequisites:
+
+   ```sh
+   flux check --pre
+   ```
+
+2. Install the Flux controllers and CRDs:
+
+   ```sh
+   kubectl apply --server-side -f kubernetes/clusters/rift/flux-system/gotk-components.yaml
+   ```
+
+3. Generate the deploy key. This stores the private key and GitHub's host keys
+   in the `flux-system` secret and prints the public key:
+
+   ```sh
+   flux create secret git flux-system --url=ssh://git@github.com/lightster/homelab
+   ```
+
+   Add the printed public key to the repo under **Settings > Deploy keys**
+   with write access left unchecked.
+
+4. Point Flux at the repo:
+
+   ```sh
+   kubectl apply -f kubernetes/clusters/rift/flux-system/gotk-sync.yaml
+   ```
+
+5. Confirm everything reconciles:
+
+   ```sh
+   flux get all -A
+   ```
+
+From here Flux manages its own manifests. To upgrade it, regenerate
+`gotk-components.yaml` with `flux install --export` from the new CLI version
+and merge the change.
