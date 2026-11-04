@@ -24,3 +24,13 @@ output "guests" {
     }
   }
 }
+
+output "rift_tunnel_id" {
+  value = cloudflare_zero_trust_tunnel_cloudflared.rift.id
+}
+
+# Copied into the cloudflared secret in kubernetes/infrastructure.
+output "rift_tunnel_token" {
+  value     = data.cloudflare_zero_trust_tunnel_cloudflared_token.rift.token
+  sensitive = true
+}

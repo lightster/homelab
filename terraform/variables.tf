@@ -79,3 +79,14 @@ variable "tailscale_oauth_client_secret" {
   description = "Tailscale OAuth client secret (Policy File + DNS read/write, Devices Core read) for managing the tailnet policy and DNS"
   sensitive   = true
 }
+
+variable "cloudflare_account_id" {
+  type        = string
+  description = "Cloudflare account ID that owns the tunnel"
+}
+
+variable "cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare API token (Account > Cloudflare Tunnel: Edit) for managing the tunnel"
+  sensitive   = true
+}
