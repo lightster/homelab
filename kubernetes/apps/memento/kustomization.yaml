@@ -5,3 +5,4 @@ resources:
   - rbac.yaml
   - sync.yaml
   - files.yaml
+  - config.secret.yaml
