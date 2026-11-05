@@ -1,0 +1,31 @@
+# memento's CI publishes its deploy manifests, with the image digest filled
+# in, as an OCI artifact and moves the main tag to each new release.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: memento
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  url: oci://ghcr.io/tinyprint/memento-manifests
+  ref:
+    tag: main
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: memento
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  timeout: 5m0s
+  sourceRef:
+    kind: OCIRepository
+    name: memento
+  path: ./
+  prune: true
+  wait: true
+  targetNamespace: memento
+  serviceAccountName: memento-deployer

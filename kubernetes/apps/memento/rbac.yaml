@@ -1,0 +1,24 @@
+# Flux applies memento's artifact as this ServiceAccount, so the manifests the
+# app repo publishes can manage anything inside the memento namespace and
+# nothing outside it. The ServiceAccount and the Flux objects stay in
+# flux-system, where the app's own manifests cannot modify them.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: memento-deployer
+  namespace: flux-system
+---
+# A RoleBinding scopes cluster-admin to this one namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: memento-deployer
+  namespace: memento
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: memento-deployer
+    namespace: flux-system
