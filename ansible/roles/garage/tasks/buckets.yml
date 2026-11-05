@@ -133,5 +133,7 @@
     label: "{{ item.item.name }}"
   when: item.item.cors_rules is defined
   register: garage_cors_update
-  changed_when: garage_cors_update.json.corsRules != item.json.corsRules
+  changed_when: >-
+    garage_cors_update.json.corsRules | default(none)
+    != item.json.corsRules | default(none)
   no_log: true
