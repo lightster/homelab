@@ -24,6 +24,10 @@ ports:
 endpoints:
   - addresses:
       - 10.38.194.15
+    # Traefik skips endpoints whose ready condition is unset, although the
+    # EndpointSlice API treats unset as ready.
+    conditions:
+      ready: true
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
