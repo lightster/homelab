@@ -1,5 +1,6 @@
 ---
 vault_postgres_superuser_password: ""
+vault_memento_db_password: ""
 vault_garage_rpc_secret: ""
 vault_garage_admin_token: ""
 vault_pihole_pwhash: ""
