@@ -118,3 +118,20 @@
   when: not (garage_key_perms.read | default(false) and garage_key_perms.write | default(false))
   changed_when: true
   no_log: true
+
+- name: Set each bucket's CORS rules
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ garage_admin_port }}/v2/UpdateBucket?id={{ item.json.id }}"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ garage_admin_token }}"
+    body_format: json
+    body:
+      corsRules: "{{ item.item.cors_rules }}"
+  loop: "{{ garage_bucket_info.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.item.cors_rules is defined
+  register: garage_cors_update
+  changed_when: garage_cors_update.json.corsRules != item.json.corsRules
+  no_log: true

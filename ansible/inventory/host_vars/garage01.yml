@@ -1,3 +1,7 @@
 ---
 garage_buckets:
   - name: memento
+    cors_rules:
+      - AllowedOrigin: ["https://memento.day"]
+        AllowedMethod: ["PUT"]
+        AllowedHeader: ["*"]
