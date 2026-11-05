@@ -1,0 +1,14 @@
+# Overrides values of the Traefik chart that k3s installs. The chart's own
+# Gateway is disabled in favor of the one in gateway.yaml; its "traefik"
+# GatewayClass is kept.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+spec:
+  valuesContent: |-
+    providers:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      enabled: false

@@ -1,0 +1,16 @@
+# The cloudflared tunnel forwards every hostname to Traefik's web entrypoint,
+# so this is the single Gateway that apps attach HTTPRoutes to. Port 8000 is
+# the entrypoint's container port, not the Service's port 80.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: web
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
