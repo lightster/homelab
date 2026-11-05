@@ -1,0 +1,42 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: reloader
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/stakater/charts/reloader
+  ref:
+    tag: 2.2.19
+    digest: sha256:dfa9fd167fc7ea3a2542de23f8d23c961d79407929f38c985d5cecfa74316142
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: reloader
+  namespace: flux-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: reloader
+  targetNamespace: reloader
+  releaseName: reloader
+  values:
+    image:
+      digest: sha256:82c80a15fdba22f738642553159f9fb37baf9e4d1edfeb798e8c48d87767f410
+    reloader:
+      watchGlobally: false
+      namespaces:
+        - memento
+      reloadStrategy: annotations
+      readOnlyRootFileSystem: true
+      deployment:
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL

@@ -14,6 +14,8 @@ spec:
       name: "*"
     - kind: Kustomization
       name: "*"
+    - kind: HelmRelease
+      name: "*"
 ---
 apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
