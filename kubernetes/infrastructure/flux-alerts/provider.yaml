@@ -1,0 +1,19 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: discord-alerts
+  namespace: flux-system
+spec:
+  type: discord
+  secretRef:
+    name: discord-alerts-webhook
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: discord-deploys
+  namespace: flux-system
+spec:
+  type: discord
+  secretRef:
+    name: discord-deploys-webhook

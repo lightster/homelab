@@ -1,0 +1,29 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: failures
+  namespace: flux-system
+spec:
+  providerRef:
+    name: discord-alerts
+  eventSeverity: error
+  eventSources:
+    - kind: GitRepository
+      name: "*"
+    - kind: OCIRepository
+      name: "*"
+    - kind: Kustomization
+      name: "*"
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: deploys
+  namespace: flux-system
+spec:
+  providerRef:
+    name: discord-deploys
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: memento
