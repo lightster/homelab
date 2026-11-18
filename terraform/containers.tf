@@ -25,6 +25,13 @@ resource "proxmox_virtual_environment_container" "postgres01" {
     size         = 20
   }
 
+  # Holds the pgBackRest repository on a separate pool from the database.
+  mount_point {
+    volume = "tank"
+    size   = "50G"
+    path   = "/var/lib/pgbackrest"
+  }
+
   network_interface {
     name   = "eth0"
     bridge = "vmbr0"
